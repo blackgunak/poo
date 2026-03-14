@@ -1,0 +1,151 @@
+{% extends 'cinema/base.html' %}
+
+{% block content %}
+  <section class="dashboard-layout">
+    <aside class="dashboard-sidebar">
+      <h3>Administration</h3>
+      <a href="{% url 'cinema:film_list' %}">Films</a>
+      <a href="{% url 'cinema:salle_list' %}">Salles</a>
+      <a href="{% url 'cinema:index' %}">Séances</a>
+      <a href="{% url 'cinema:reservation_list' %}" class="active">Réservations</a>
+    </aside>
+
+    <div>
+      <h2 class="page-title">Liste des réservations</h2>
+      <div class="card">
+        <table class="modern-table">
+          <thead><tr><th>ID</th><th>Utilisateur</th><th>Seance</th><th>Date</th><th>Montant</th><th>QR</th></tr></thead>
+          <tbody>
+            {% for r in reservations %}
+              <tr>
+                <td>{{ r.id }}</td>
+                <td>{{ r.utilisateur }}</td>
+                <td>{{ r.seance.film.titre }} — {{ r.seance.date }} {{ r.seance.heure }}</td>
+                <td>{{ r.date_reservation }}</td>
+                <td>{{ r.montant_total }} €</td>
+                <td>
+                  {% if r.qr_valid %}<span class="badge">valide</span>{% else %}<span class="badge muted">utilisé</span>{% endif %}
+                </td>
+                <td class="actions">
+                  {% if is_staff %}
+                    <a class="btn small confirm-download" href="{% url 'cinema:reservation_qr_download_staff' r.id %}" title="Télécharger QR" aria-label="Télécharger QR">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </a>
+                    <a class="btn small" href="{% url 'cinema:reservation_detail' r.id %}" title="Voir réservation" aria-label="Voir réservation">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </a>
+                    <a class="btn small confirm-scan" href="#" data-token="{{ r.qr_token }}" title="Scanner" aria-label="Scanner">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><polyline points="9 12 11 14 15 10"/></svg>
+                    </a>
+                  {% else %}
+                    <a class="btn small confirm-download" href="{% url 'cinema:reservation_qr_download' r.id %}" title="Télécharger QR" aria-label="Télécharger QR">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </a>
+                    <a class="btn small" href="{% url 'cinema:reservation_detail' r.id %}" title="Voir réservation" aria-label="Voir réservation">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </a>
+                    <a class="btn small confirm-scan" href="#" data-token="{{ r.qr_token }}" title="Scanner" aria-label="Scanner">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><polyline points="9 12 11 14 15 10"/></svg>
+                    </a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6">Aucune réservation</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  <!-- QR Modal for staff/custom admin -->
+  <div id="qrModal" class="qr-modal" aria-hidden="true" style="display:none;">
+    <div class="qr-modal-backdrop" data-close></div>
+    <div class="qr-modal-content" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+      <button class="qr-modal-close" data-close aria-label="Fermer">×</button>
+      <h3 id="qrModalTitle" style="margin-bottom:12px;">QR Réservation</h3>
+      <div class="qr-modal-body">
+        <img id="qrModalImage" src="" alt="QR Réservation" style="max-width:320px; width:100%; height:auto; display:block; margin:0 auto;" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modal = document.getElementById('qrModal');
+      const modalImage = document.getElementById('qrModalImage');
+
+      function openModal(url) {
+        modalImage.src = url;
+        modal.style.display = '';
+        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('open');
+      }
+      function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        modalImage.src = '';
+        modal.style.display = 'none';
+      }
+
+      document.addEventListener('click', function (e) {
+        // open QR modal
+        const openBtn = e.target.closest('.open-qr-btn');
+        if (openBtn) {
+          const url = openBtn.getAttribute('data-url');
+          openModal(url);
+          return;
+        }
+
+        // confirm scan -> perform AJAX call to staff scan endpoint
+        const scanBtn = e.target.closest('.confirm-scan');
+        if (scanBtn) {
+          if (!confirm('Confirmer le scan de ce QR ? Cette action marquera le billet comme utilisé.')) {
+            e.preventDefault();
+            return;
+          }
+          e.preventDefault();
+          const token = scanBtn.getAttribute('data-token');
+          if (!token) return alert('Token manquant');
+          fetch(`/dashboard/reservations/scan/${token}/`, { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(data => {
+              if (data.status === 'ok') {
+                alert('QR scanné — Réservation marquée comme utilisée.');
+                // update badge in the same row
+                const row = scanBtn.closest('tr');
+                const badge = row.querySelector('.badge');
+                if (badge) badge.textContent = 'utilisé';
+                // optionally disable scan button
+                scanBtn.classList.add('disabled');
+                scanBtn.setAttribute('aria-disabled', 'true');
+              } else if (data.status === 'used') {
+                alert('Ce QR a déjà été utilisé.');
+              } else {
+                alert('Token introuvable ou erreur.');
+              }
+            }).catch(err => { console.error(err); alert('Erreur réseau'); });
+          return;
+        }
+
+        // confirm download
+        const dlBtn = e.target.closest('.confirm-download');
+        if (dlBtn) {
+          if (!confirm('Télécharger l\'image QR ?')) {
+            e.preventDefault();
+            return;
+          }
+          return;
+        }
+
+        if (e.target.matches('[data-close]') || e.target.closest('.qr-modal-close')) {
+          closeModal();
+        }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+      });
+    })();
+  </script>
+{% endblock %}

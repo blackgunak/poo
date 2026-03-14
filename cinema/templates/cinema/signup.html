@@ -1,0 +1,16 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>✨ Inscription</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" style="width: 100%; margin-top: 16px;">S'inscrire</button>
+    </form>
+    <div class="form-footer">
+      <p>Déjà un compte ? <a href="{% url 'login' %}">Se connecter</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

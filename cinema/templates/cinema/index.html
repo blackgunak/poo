@@ -1,0 +1,76 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+  {% if featured %}
+    <div class="home-grid container">
+      <section class="hero-card card">
+        <div class="hero-card-inner">
+          <div class="hero-card-content">
+            <div class="hero-eyebrow">À l'affiche maintenant</div>
+            <h1 class="hero-card-title">{{ featured.film.titre }}</h1>
+            <p class="hero-card-desc">{{ featured.film.description|default:"Découvrez ce film en séance dans notre cinéma moderne."|truncatechars:280 }}</p>
+            <div class="hero-meta">
+              <span>⏱ {{ featured.film.duree }} min</span>
+              <span>🎭 {{ featured.salle.nom }}</span>
+              <span>📅 {{ featured.date }} · {{ featured.heure }}</span>
+            </div>
+            <div style="margin-top:18px">
+              <a href="{% url 'cinema:seance_detail' featured.id %}" class="btn">Réserver</a>
+            </div>
+          </div>
+          <div class="hero-card-visual">
+            {% if featured.film.affiche %}
+              <img src="{{ featured.film.affiche.url }}" alt="Affiche {{ featured.film.titre }}" class="hero-poster large">
+            {% else %}
+              <div class="hero-poster hero-poster-fallback large">🎬</div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+  {% endif %}
+
+  <section class="films-section container">
+    <h2 class="page-title">Films à l'affiche</h2>
+    <div class="films-grid" id="films-grid">
+      {% for film in films_affiche %}
+        {% with premiere=film.seance_set.all.0 %}
+          <article class="film-card">
+              {% if film.affiche %}
+                <img src="{{ film.affiche.url }}" alt="Affiche {{ film.titre }}" class="film-poster">
+              {% else %}
+                <div class="film-poster film-poster-fallback">🎬</div>
+              {% endif %}
+              <div class="film-card-body">
+                <h3 title="{{ film.titre }}">{{ film.titre }}</h3>
+                <p class="film-meta">⏱ {{ film.duree }} min · 🏷 {{ film.categorie|default:"Non classé" }}</p>
+                <div class="film-card-footer">
+                  {% if premiere %}
+                    <a href="{% url 'cinema:seance_detail' premiere.id %}" class="btn">Voir séances</a>
+                  {% else %}
+                    <span class="film-meta">Aucune séance</span>
+                  {% endif %}
+                  <small class="film-meta">Plus d'info</small>
+                </div>
+              </div>
+            </article>
+        {% endwith %}
+      {% empty %}
+        <div class="card">
+          <p style="text-align: center; color: var(--text-secondary);">Aucun film à l'affiche pour le moment.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const grid = document.getElementById('films-grid');
+      if (!grid) return;
+      const cards = grid.querySelectorAll('.film-card');
+      cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.animation = `fadeIn 0.4s ease forwards ${index * 0.06}s`;
+      });
+    });
+  </script>
+{% endblock %}

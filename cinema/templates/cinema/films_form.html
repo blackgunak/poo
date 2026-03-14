@@ -1,0 +1,168 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+<div class="auth-container" style="max-width: 600px;">
+  <div class="auth-card">
+    <h2>🎬 {% if film %}Éditer{% else %}Créer{% endif %} un film</h2>
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        <strong>Erreurs dans le formulaire :</strong>
+        <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+          {% for field in form %}
+            {% for error in field.errors %}
+              <li>{{ field.label }} : {{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" id="film-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="{{ form.titre.id_for_label }}">{{ form.titre.label }}</label>
+        {{ form.titre }}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+        {{ form.description }}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.duree.id_for_label }}">{{ form.duree.label }}</label>
+        {{ form.duree }}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.categorie.id_for_label }}">{{ form.categorie.label }}</label>
+        {{ form.categorie }}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.affiche.id_for_label }}">{{ form.affiche.label }}</label>
+        {{ form.affiche }}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.date_sortie.id_for_label }}">{{ form.date_sortie.label }}</label>
+        {{ form.date_sortie }}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.salle.id_for_label }}">{{ form.salle.label }}</label>
+        {{ form.salle }}
+        {% if form.salle.help_text %}
+          <small class="form-help">{{ form.salle.help_text }}</small>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label>Dates de visionnage</label>
+        <div class="multi-date-box" id="multi-date-box"></div>
+        <button type="button" class="btn btn-secondary multi-date-add" id="add-date-btn">+ Ajouter une date</button>
+        <textarea name="dates_visionnage" id="id_dates_visionnage" class="multi-date-hidden">{{ form.dates_visionnage.value|default_if_none:'' }}</textarea>
+        {% if form.dates_visionnage.help_text %}
+          <small class="form-help">{{ form.dates_visionnage.help_text }}</small>
+        {% endif %}
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button type="submit" style="flex: 1;">Enregistrer</button>
+        <a href="{% url 'cinema:film_list' %}" class="btn btn-secondary" style="flex: 1; text-align: center;">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const box = document.getElementById('multi-date-box');
+    const addBtn = document.getElementById('add-date-btn');
+    const hiddenField = document.getElementById('id_dates_visionnage');
+    const form = document.getElementById('film-form');
+
+    function getNormalizedDates() {
+      const values = Array.from(box.querySelectorAll('input[type="date"]'))
+        .map(input => input.value)
+        .filter(Boolean);
+      const uniques = Array.from(new Set(values));
+      uniques.sort((a, b) => a.localeCompare(b));
+      return uniques;
+    }
+
+    function syncHiddenField() {
+      const values = getNormalizedDates();
+      hiddenField.value = values.join(',');
+    }
+
+    function createDateRow(value) {
+      const row = document.createElement('div');
+      row.className = 'multi-date-row';
+
+      const input = document.createElement('input');
+      input.type = 'date';
+      input.className = 'multi-date-input';
+      input.value = value || '';
+      input.addEventListener('change', syncHiddenField);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn btn-danger multi-date-remove';
+      removeBtn.textContent = 'Supprimer';
+      removeBtn.addEventListener('click', function () {
+        row.remove();
+        if (box.querySelectorAll('.multi-date-row').length === 0) {
+          createDateRow('');
+        }
+        syncHiddenField();
+      });
+
+      row.appendChild(input);
+      row.appendChild(removeBtn);
+      box.appendChild(row);
+      syncHiddenField();
+    }
+
+    function parseInitialDates() {
+      const raw = (hiddenField.value || '').trim();
+      if (!raw) {
+        createDateRow('');
+        return;
+      }
+      const values = raw
+        .replace(/\n/g, ',')
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean);
+
+      if (values.length === 0) {
+        createDateRow('');
+        return;
+      }
+
+      values.forEach(v => createDateRow(v));
+    }
+
+    addBtn.addEventListener('click', function () {
+      createDateRow('');
+    });
+
+    form.addEventListener('submit', function () {
+      const normalized = getNormalizedDates();
+      const inputs = Array.from(box.querySelectorAll('input[type="date"]'));
+      inputs.forEach(input => {
+        input.closest('.multi-date-row')?.remove();
+      });
+      if (normalized.length === 0) {
+        createDateRow('');
+      } else {
+        normalized.forEach(value => createDateRow(value));
+      }
+      syncHiddenField();
+    });
+    parseInitialDates();
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+  <div id="pageMessage" class="page-message"></div>
+  <section class="seance-layout">
+    <aside class="seance-left card">
+      {% if seance.film.affiche %}
+        <img src="{{ seance.film.affiche.url }}" alt="Affiche {{ seance.film.titre }}" class="seance-poster">
+      {% else %}
+        <div class="seance-poster seance-poster-fallback">🎬</div>
+      {% endif %}
+      <h2 class="gradient-text" style="font-size: 2rem; margin-bottom: 12px;">{{ seance.film.titre }}</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 16px;">{{ seance.film.description|default:"Aucune description." }}</p>
+      <div class="seance-meta-list">
+        <div>⏱ <strong>Durée:</strong> {{ seance.film.duree }} min</div>
+        <div>🏷 <strong>Catégorie:</strong> {{ seance.film.categorie|default:"Non classé" }}</div>
+    </div>
+    </aside>
+
+    <div class="seance-right">
+      <div class="card">
+        <h3 class="gradient-text" style="margin-bottom: 16px;">Séances disponibles</h3>
+        <div class="seance-cards-grid">
+          {% for item in autres_seances %}
+            <div class="seance-mini-card {% if item.id == seance.id %}active{% endif %}">
+              <div class="line">📅 {{ item.date }}</div>
+              <div class="line">⏰ {{ item.heure }}</div>
+              <div class="line">💰 {{ item.prix }} €</div>
+              <a href="{% url 'cinema:seance_detail' item.id %}" class="btn {% if item.id == seance.id %}btn-secondary{% endif %}">
+                Choisir places
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card seance-seat-card">
+        <h3 class="gradient-text" style="margin-bottom: 20px;">Plan de salle</h3>
+        <div class="screen-label">ECRAN</div>
+        <div class="seatmap-wrap">
+          <div id="seatmapLoading" class="seatmap-loading">Chargement du plan de salle...</div>
+          <div id="seatmap" class="seatmap" data-seance-id="{{ seance.id }}" data-prix="{{ seance.prix }}"></div>
+        </div>
+        <div class="seat-legend">
+          <span><i class="seat-dot available"></i> Disponible</span>
+          <span><i class="seat-dot reserved"></i> Réservé</span>
+          <span><i class="seat-dot selected"></i> Sélectionné</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="reserve-sticky-bar">
+    <div class="reserve-summary">
+      <span class="reserve-line"><strong>Places :</strong> <span id="selectedCount">0 place</span></span>
+      <span class="reserve-line"><strong>Prix unitaire :</strong> <span id="unitPrice">{{ seance.prix }} €</span></span>
+      <span class="reserve-line"><strong>Total :</strong> <strong id="selectedTotal">0.00 €</strong></span>
+    </div>
+    <button id="reserveBtn" class="btn success">Confirmer réservation</button>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/static/cinema/seatmap.js"></script>
+{% endblock %}

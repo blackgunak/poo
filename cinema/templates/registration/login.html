@@ -1,0 +1,22 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>🔐 Connexion</h2>
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        Veuillez corriger les erreurs ci-dessous.
+      </div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" style="width: 100%; margin-top: 16px;">Se connecter</button>
+    </form>
+    <div class="form-footer">
+      <p>Pas encore de compte ? <a href="{% url 'cinema:signup' %}">Créer un compte</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

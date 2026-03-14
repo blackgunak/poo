@@ -1,0 +1,104 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+  <section class="dashboard-layout">
+    <aside class="dashboard-sidebar">
+      <h3>Administration</h3>
+      <a href="{% url 'cinema:film_list' %}">Films</a>
+      <a href="{% url 'cinema:salle_list' %}">Salles</a>
+      <a href="{% url 'cinema:index' %}">Séances</a>
+      <a href="{% url 'cinema:reservation_list' %}">Réservations</a>
+      <a href="{% url 'cinema:dashboard' %}" class="active">Statistiques</a>
+    </aside>
+
+    <div>
+      <h2 class="page-title">Tableau de bord administrateur</h2>
+      <div id="stats" class="dashboard-content">
+        <div class="dashboard-skeleton">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    function animateCounter(el, target, decimals = 0, suffix = '') {
+      let current = 0;
+      const steps = 35;
+      const increment = target / steps;
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        el.textContent = `${current.toFixed(decimals)}${suffix}`;
+      }, 18);
+    }
+
+    fetch('{% url "cinema:dashboard_stats" %}')
+      .then(r => r.json())
+      .then(data => {
+        const el = document.getElementById('stats');
+        el.innerHTML = `
+          <div class="stats-grid stats-grid-4">
+            <div class="stat-card"><div class="stat-icon">🎫</div><div class="stat-value" id="kpi-resa">0</div><div class="stat-label">Total réservations</div></div>
+            <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="kpi-recette">0</div><div class="stat-label">Recette totale</div></div>
+            <div class="stat-card"><div class="stat-icon">🎞</div><div class="stat-value" id="kpi-seances">0</div><div class="stat-label">Séances actives</div></div>
+            <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-value" id="kpi-taux">0</div><div class="stat-label">Taux moyen remplissage</div></div>
+          </div>
+
+          <div class="card">
+            <h3 class="gradient-text" style="margin-bottom: 20px;">Évolution des réservations</h3>
+            <canvas id="statsChart" height="110"></canvas>
+          </div>
+
+          <div class="card" style="margin-top: 20px;">
+            <h3 class="gradient-text" style="margin-bottom: 20px;">Recette par séance</h3>
+            <table class="modern-table">
+              <thead><tr><th>Film</th><th>Montant</th></tr></thead>
+              <tbody>
+                ${data.recette_par_seance.map(s => `<tr><td>${s['seance__film__titre']}</td><td>${s.total} €</td></tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        animateCounter(document.getElementById('kpi-resa'), Number(data.total_reservations || 0));
+        animateCounter(document.getElementById('kpi-recette'), Number(data.recette_totale || 0), 2, ' €');
+        animateCounter(document.getElementById('kpi-seances'), Number(data.seances_actives || 0));
+        animateCounter(document.getElementById('kpi-taux'), Number(data.taux_moyen_remplissage || 0), 2, ' %');
+
+        const labels = (data.reservations_par_jour || []).map(x => x.jour);
+        const values = (data.reservations_par_jour || []).map(x => x.total);
+        const ctx = document.getElementById('statsChart');
+        if (ctx) {
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [{
+                label: 'Réservations',
+                data: values,
+                borderColor: '#E50914',
+                backgroundColor: 'rgba(229,9,20,0.2)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 3,
+              }],
+            },
+            options: {
+              plugins: { legend: { labels: { color: '#B3B3B3' } } },
+              scales: {
+                x: { ticks: { color: '#B3B3B3' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+                y: { ticks: { color: '#B3B3B3' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+              },
+            },
+          });
+        }
+      });
+  </script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+  <h2 class="page-title">🎬 Films</h2>
+  
+  <div style="margin-bottom: 24px;">
+    <a href="{% url 'cinema:film_create' %}" class="btn">+ Créer un film</a>
+  </div>
+  
+  <ul class="modern-list">
+    {% for f in films %}
+      <li>
+        <div>
+          <div style="font-weight: 600; font-size: 1.1rem;">{{ f.titre }}</div>
+          {% with seances=f.seance_set.all %}
+            {% if seances %}
+              <div style="font-size: 0.92rem; color: var(--text-secondary); margin-top: 4px;">
+                🎭 Salle : {{ seances.0.salle.nom }}
+              </div>
+              <div style="font-size: 0.92rem; color: var(--text-secondary); margin-top: 2px;">
+                📅 Dates :
+                {% for seance in seances %}
+                  {{ seance.date }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+              </div>
+            {% else %}
+              <div style="font-size: 0.92rem; color: var(--text-secondary); margin-top: 4px;">
+                Aucun visionnage planifié.
+              </div>
+            {% endif %}
+          {% endwith %}
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <a href="{% url 'cinema:film_edit' f.id %}" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">Éditer</a>
+          <a href="{% url 'cinema:film_delete' f.id %}" class="btn danger" style="padding: 8px 16px; font-size: 0.9rem;">Supprimer</a>
+        </div>
+      </li>
+    {% empty %}
+      <li style="justify-content: center; color: var(--text-secondary);">Aucun film disponible.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

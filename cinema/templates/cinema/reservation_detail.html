@@ -1,0 +1,14 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+  <div class="card">
+    <h2>Réservation #{{ reservation.id }}</h2>
+    <p>Film: {{ reservation.seance.film.titre }}</p>
+    <p>Salle: {{ reservation.seance.salle.nom }} — {{ reservation.seance.date }} {{ reservation.seance.heure }}</p>
+    <p>Montant: {{ reservation.montant_total }} €</p>
+
+    <div style="margin-top:18px; text-align:center;">
+      <p>Montrez ce QR à l'entrée. Il sera invalidé après lecture.</p>
+      <img src="{% url 'cinema:reservation_qr_image' reservation.id %}" alt="QR réservation {{ reservation.id }}" style="max-width:260px; width:100%; height:auto; border:1px solid #eee; border-radius:8px;"/>
+    </div>
+  </div>
+{% endblock %}

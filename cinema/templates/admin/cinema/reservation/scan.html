@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  <h1>Scanner un QR / Coller le token</h1>
+  <form method="post">
+    {% csrf_token %}
+    <p>Collez ici le token UUID ou l'URL complète du QR:</p>
+    <p><textarea name="token_or_url" rows="3" cols="72" placeholder="ex: https://.../qr/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></textarea></p>
+    <p><input type="submit" value="Valider" class="default"></p>
+  </form>
+{% endblock %}

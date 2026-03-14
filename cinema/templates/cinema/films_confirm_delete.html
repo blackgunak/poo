@@ -1,0 +1,18 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+<div class="auth-container" style="max-width: 500px;">
+  <div class="auth-card" style="text-align: center;">
+    <div style="font-size: 4rem; margin-bottom: 16px;">⚠️</div>
+    <h2 style="color: #dc2626;">Supprimer le film</h2>
+    <p style="font-size: 1.25rem; font-weight: 600; margin-bottom: 24px;">{{ film.titre }}</p>
+    <p style="color: var(--text-secondary); margin-bottom: 32px;">Cette action est irréversible. Êtes-vous sûr de vouloir continuer ?</p>
+    <form method="post">
+      {% csrf_token %}
+      <div style="display: flex; gap: 16px; justify-content: center;">
+        <button type="submit" class="btn danger">🗑️ Supprimer</button>
+        <a href="{% url 'cinema:film_list' %}" class="btn btn-secondary">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

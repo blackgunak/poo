@@ -1,0 +1,21 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  {% if result.status == 'ok' %}
+    <h1>QR valide — réservation marquée comme utilisée</h1>
+    <p>Réservation: #{{ result.reservation.id }} — utilisateur: {{ result.reservation.utilisateur }}</p>
+    <p>Seance: {{ result.reservation.seance }}</p>
+    <p>Utilisé par: {{ result.reservation.qr_used_by }} à {{ result.reservation.qr_used_at }}</p>
+  {% elif result.status == 'used' %}
+    <h1>QR déjà utilisé</h1>
+    <p>Réservation: #{{ result.reservation.id }} — utilisateur: {{ result.reservation.utilisateur }}</p>
+    <p>Utilisé par: {{ result.reservation.qr_used_by }} à {{ result.reservation.qr_used_at }}</p>
+  {% elif result.status == 'notfound' %}
+    <h1>Token introuvable</h1>
+    <p>Aucune réservation trouvée pour ce token.</p>
+  {% else %}
+    <h1>Token invalide</h1>
+    <p>Le token fourni n'est pas valide.</p>
+  {% endif %}
+  <p><a href="{% url 'admin:cinema_reservation_changelist' %}">Retour à la liste des réservations</a></p>
+{% endblock %}

@@ -1,0 +1,121 @@
+.seatmap {
+	display: grid;
+	gap: 10px;
+	min-width: 560px;
+	margin: 20px 0;
+	justify-content: start;
+}
+
+.seatmap-loading {
+	color: #B3B3B3;
+	padding: 18px 0;
+	font-size: 0.95rem;
+	animation: seatmapFade 1.1s ease-in-out infinite alternate;
+}
+
+.seat {
+	width: 40px;
+	height: 40px;
+	border-radius: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: #fff;
+	font-size: 0.8rem;
+	transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+}
+
+.seat.aisle {
+	margin-left: 18px;
+}
+
+.seat:hover {
+	transform: translateY(-2px) scale(1.05);
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+}
+
+.seat.available { background: #2ECC71; }
+
+.seat.reserved {
+	background: #E74C3C;
+	cursor: not-allowed;
+	opacity: 0.9;
+}
+
+.seat.selected {
+	background: #3498DB;
+	animation: seatPulse .25s ease;
+}
+
+.seat-label {
+	color: #B3B3B3;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.seat-label.aisle {
+	margin-left: 18px;
+}
+
+.screen-label {
+	position: relative;
+	font-weight: 700;
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35), 0 0 24px rgba(255, 255, 255, 0.14);
+}
+
+.screen-label::after {
+	content: '';
+	position: absolute;
+	left: 10%;
+	right: 10%;
+	bottom: -12px;
+	height: 12px;
+	filter: blur(10px);
+	background: rgba(255, 255, 255, 0.35);
+	border-radius: 999px;
+}
+
+.reserve-line {
+	display: block;
+	color: #B3B3B3;
+	font-size: 0.92rem;
+}
+
+.reserve-line strong {
+	color: #FFFFFF;
+}
+
+@keyframes seatmapFade {
+	from { opacity: 0.35; }
+	to { opacity: 1; }
+}
+
+html[data-theme='light'] .seatmap-loading {
+	color: #555B66;
+}
+
+html[data-theme='light'] .reserve-line {
+	color: #555B66;
+}
+
+html[data-theme='light'] .reserve-line strong {
+	color: #111318;
+}
+
+html[data-theme='light'] .screen-label {
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12), 0 0 18px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 768px) {
+	.seatmap {
+		min-width: 520px;
+	}
+}
+
+@keyframes seatPulse {
+	from { transform: scale(0.85); }
+	to { transform: scale(1); }
+}

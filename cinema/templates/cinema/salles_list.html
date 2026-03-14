@@ -1,0 +1,25 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+  <h2 class="page-title">🎭 Salles</h2>
+  
+  <div style="margin-bottom: 24px;">
+    <a href="{% url 'cinema:salle_create' %}" class="btn">+ Créer une salle</a>
+  </div>
+  
+  <ul class="modern-list">
+    {% for s in salles %}
+      <li>
+        <div>
+          <span style="font-weight: 600; font-size: 1.1rem;">{{ s.nom }}</span>
+          <span class="badge badge-primary" style="margin-left: 12px;">{{ s.nombre_rangees }}x{{ s.nombre_places_par_rangee }} places</span>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <a href="{% url 'cinema:salle_edit' s.id %}" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">Éditer</a>
+          <a href="{% url 'cinema:salle_delete' s.id %}" class="btn danger" style="padding: 8px 16px; font-size: 0.9rem;">Supprimer</a>
+        </div>
+      </li>
+    {% empty %}
+      <li style="justify-content: center; color: var(--text-secondary);">Aucune salle disponible.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

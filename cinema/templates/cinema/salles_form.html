@@ -1,0 +1,16 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+<div class="auth-container" style="max-width: 600px;">
+  <div class="auth-card">
+    <h2>🎭 {% if salle %}Éditer{% else %}Créer{% endif %} une salle</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button type="submit" style="flex: 1;">Enregistrer</button>
+        <a href="{% url 'cinema:salle_list' %}" class="btn btn-secondary" style="flex: 1; text-align: center;">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

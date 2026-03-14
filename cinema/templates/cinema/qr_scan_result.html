@@ -1,0 +1,14 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+  <div class="card">
+    {% if status == 'ok' %}
+      <h2>Billet validé</h2>
+      <p>La réservation #{{ reservation.id }} a été validée et le QR ne peut plus être utilisé.</p>
+    {% elif status == 'used' %}
+      <h2>QR déjà utilisé</h2>
+      <p>Ce code a déjà été scanné pour la réservation #{{ reservation.id }}.</p>
+    {% else %}
+      <h2>Code invalide</h2>
+    {% endif %}
+  </div>
+{% endblock %}

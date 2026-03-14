@@ -1,0 +1,82 @@
+{% extends 'cinema/base.html' %}
+{% block content %}
+  <h2 class="page-title">Mes billets</h2>
+  {% if reservations %}
+    <div class="stats-grid">
+      {% for res in reservations %}
+        <div class="card">
+          <h3>Réservation #{{ res.id }} {% if res.statut != 'CONFIRMEE' %}<span class="badge badge-danger">{{ res.get_statut_display }}</span>{% endif %}</h3>
+          <p><strong>Film:</strong> {{ res.seance.film.titre }}</p>
+          <p><strong>Salle:</strong> {{ res.seance.salle.nom }}</p>
+          <p><strong>Séance:</strong> {{ res.seance.date }} · {{ res.seance.heure }}</p>
+          <p><strong>Montant:</strong> {{ res.montant_total }} €</p>
+          <p><strong>Date réservation:</strong> {{ res.date_reservation }}</p>
+          <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+            <a href="{% url 'cinema:reservation_detail' res.id %}" class="btn">Voir</a>
+            {% if res.qr_valid %}
+              <button type="button" class="btn btn-secondary open-qr-btn" data-url="{% url 'cinema:reservation_qr_image' res.id %}">Afficher QR</button>
+              <a href="{% url 'cinema:reservation_qr_download' res.id %}" class="btn" download>Télécharger QR</a>
+            {% else %}
+              <span class="film-meta">QR déjà utilisé le {{ res.qr_used_at }}</span>
+            {% endif %}
+          </div>
+          <hr style="margin:12px 0;"/>
+          <div>
+            <strong>Billets:</strong>
+            <ul>
+              {% for b in res.billets.all %}
+                <li>{{ b.place }} — {{ b.seance }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <p>Vous n'avez aucune réservation pour le moment.</p>
+    </div>
+  {% endif %}
+  
+  <!-- QR Modal -->
+  <div id="qrModal" class="qr-modal" aria-hidden="true">
+    <div class="qr-modal-backdrop" data-close></div>
+    <div class="qr-modal-content" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+      <button class="qr-modal-close" data-close aria-label="Fermer">×</button>
+      <h3 id="qrModalTitle" style="margin-bottom:12px;">Votre QR</h3>
+      <div class="qr-modal-body">
+        <img id="qrModalImage" src="" alt="QR Réservation" style="max-width:320px; width:100%; height:auto; display:block; margin:0 auto;" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modal = document.getElementById('qrModal');
+      const modalImage = document.getElementById('qrModalImage');
+      function openModal(url) {
+        modalImage.src = url;
+        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('open');
+      }
+      function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        modalImage.src = '';
+      }
+      document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.open-qr-btn');
+        if (btn) {
+          const url = btn.getAttribute('data-url');
+          openModal(url);
+        }
+        if (e.target.matches('[data-close]') || e.target.closest('.qr-modal-close')) {
+          closeModal();
+        }
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+      });
+    })();
+  </script>
+{% endblock %}
